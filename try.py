@@ -4,6 +4,7 @@ import numpy as np
 import undetected_chromedriver as uc
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chromium.options import ChromiumOptions
 from bs4 import BeautifulSoup as bs
 from selenium.webdriver.remote.webdriver import By
 import argparse
@@ -96,6 +97,7 @@ def my_login(driver, chrome_options, cracker, uri, info='', max_try=50):
     driver.find_element(By.ID,
         "Registration:SiteTemplate:theForm:submit").click()
     print(f"已点击提交")
+    time.sleep(6)
     # if driver.page_source.find('无法核实验证码') == -1:
     #     os.system('mv %s log/%s.gif' % (gifname, captcha))
     #     break
@@ -106,12 +108,63 @@ def my_login(driver, chrome_options, cracker, uri, info='', max_try=50):
     #     if hasattr(cracker, 'wrong'):
     #         cracker.wrong()
 
+def postprocess(raw):
+    if raw == []:
+        return "/"
+    m = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+         'August', 'September', 'October', 'November', 'December'].index(
+        raw[1]) + 1
+    d = raw[2][:-1]
+    y = raw[3][:-1]
+    return '{}/{}/{}'.format(y, m, d)
+def b_visa(driver):
+    new_page_url = base_url + '/selectvisatype'
+    print(f"进入新页面: {new_page_url}")
+    driver.get(new_page_url)
+    driver.find_element(By.ID, "j_id0:SiteTemplate:theForm:ttip:2").click()
+    driver.find_element(By.XPATH, "//div[3]/div[3]/div/button/span").click()
+    driver.find_element(By.XPATH, '//input[@name="j_id0:SiteTemplate:theForm:j_id176"]').click()
+    name = ['北京', '武汉', '广州', '上海', '沈阳']
+    s = {'time': time.strftime('%Y/%m/%d %H:%M', time.localtime())}
+    cur = time.strftime('%Y/%m/%d', time.localtime())
+    print(s['time'])
+    for i in range(len(name)):
+        n = name[i] + '-' + cur
+        n2 = name[i] + '2-' + cur
+        driver.get(base_url + '/SelectPost')
+        time.sleep(5)
+        driver.find_element(By.ID, "j_id0:SiteTemplate:j_id112:j_id165:{}".format(i)).click()
+        driver.find_element(By.XPATH, '//input[@name="j_id0:SiteTemplate:j_id112:j_id169"]').click()
+        try:
+            driver.find_element(By.ID, "j_id0:SiteTemplate:j_id109:j_id162:0").click()
+            driver.find_element(By.XPATH, '//input[@name="j_id0:SiteTemplate:j_id109:j_id166"]').click()
+        except:
+            pass
+        driver.find_element(By.XPATH, "(//input[@id='selectedVisaClass'])[2]").click()
+        driver.find_element(By.XPATH, '//input[@name="j_id0:SiteTemplate:theForm:j_id178"]').click()
+        result = bs(driver.page_source, 'html.parser').findAll(
+            class_='leftPanelText')
+        if len(result):
+            result = result[0].text.split()[1:]
+            print(f"result={result}")
+        s[n] = s[n2] = postprocess(result)
+        # if s[n] != '/':
+        #     path = 'B/' + n.replace('-', '/')
+            # os.makedirs('/'.join(path.split('/')[:-1]), exist_ok=True)
+            # open(path, 'a+').write(s['time'].split(' ')
+            #                        [-1] + ' ' + s[n] + '\n')
+        print('B1/B2', n, s[n])
+        time.sleep(3)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--secret', type=str, default='')
 # parser.add_argument('--proxy', type=int, default=7890)#1080)
 args = parser.parse_args()
 
 # chrome_options = uc.ChromeOptions()#Options()
+chrome_options = Options()#ChromiumOptions()
+# chrome_options.add_experimental_option("detach", True)
 # if len(args.secret) == 0:
 # cracker = args
 # cracker.solve = lambda x: input('Captcha: ')
@@ -132,7 +185,7 @@ cracker = None
 # chrome_options.add_argument("start-maximized")
 
 
-driver = uc.Chrome(use_subprocess=True)
+driver = uc.Chrome(options=chrome_options, use_subprocess=True)
 
 uri = '/SiteRegister?country=China&language=zh_CN'
 info = "China Mainland"
@@ -143,3 +196,4 @@ chrome_options = None
 # print(f"target_url = {target_url}")
 # driver.get(target_url)
 my_login(driver, chrome_options, cracker, uri=uri, info=info)
+b_visa(driver)
