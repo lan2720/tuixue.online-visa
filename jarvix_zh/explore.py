@@ -32,21 +32,35 @@ chrome_options.add_argument('--disable-blink-features=AutomationControlled')
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
                           options=chrome_options)
 
+driver.get("https://www.sina.com")#'https://www.baidu.com/')
+for page in ['https://www.zhihu.com', "https://www.baidu.com", "https://www.twitter.com"]:
+    driver.execute_script(f"window.open('{page}', 'new window')")
+    driver.implicitly_wait(random.randint(3, 10) + random.random())
+    time.sleep(random.randint(5, 10) + random.random())
+    driver.switch_to.window(driver.window_handles[-1])
+
 # 打开网页
 base_url = "https://portal.ustraveldocs.com"
-driver.get(base_url)#'https://www.baidu.com/')
-driver.execute_script(f"window.open('https://www.baidu.com', 'new window')")
+# driver.get(base_url)#'https://www.baidu.com/')
+driver.execute_script(f"window.open('{base_url}', 'new window')")
 driver.implicitly_wait(random.randint(3, 10) + random.random())
 time.sleep(random.randint(5, 10) + random.random())
-# #
-driver.switch_to.window(driver.window_handles[1])
-driver.implicitly_wait(random.randint(3, 10) + random.random())
-time.sleep(random.randint(2, 10)+random.random())
+# driver.switch_to.window(driver.window_handles[-1])
+
+for page in ['https://www.facebook.com']:
+    driver.execute_script(f"window.open('{page}', 'new window')")
+    driver.implicitly_wait(random.randint(3, 10) + random.random())
+    time.sleep(random.randint(5, 10) + random.random())
+    driver.switch_to.window(driver.window_handles[-1])
+
+# driver.switch_to.window(driver.window_handles[-1])
+# driver.implicitly_wait(random.randint(3, 10) + random.random())
+# time.sleep(random.randint(2, 10)+random.random())
 driver.close()
 time.sleep(random.randint(1, 10) + random.random())
-driver.switch_to.window(driver.window_handles[0])
+driver.switch_to.window(driver.window_handles[-1])
 driver.implicitly_wait(random.randint(3, 10) + random.random())
-time.sleep(random.randint(3, 10) + random.random())
+# time.sleep(random.randint(3, 10) + random.random())
 driver.find_element(By.XPATH, elem_xpaths["username"]).send_keys(account_info["username"])
 driver.implicitly_wait(random.randint(3, 10) + random.random())
 time.sleep(random.randint(6, 10) + random.random())
