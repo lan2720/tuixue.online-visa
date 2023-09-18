@@ -6,9 +6,10 @@
 import random
 import time
 import os
+import cloudscraper
 
 import requests
-header = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
           "Origin": "https://portal.ustraveldocs.com",
           "Referer": "https://portal.ustraveldocs.com/appointmentcancellation",
           "Content-Type": "application/x-www-form-urlencoded",
@@ -16,6 +17,11 @@ header = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWe
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
           }
 chrome_port = 9527
+proxies = {
+    'http': 'http://127.0.0.1:7890',
+    'https': 'https://127.0.0.1:7890'
+}
+
 chrome_drive_path = "/Users/jarvixwang/.wdm/drivers/chromedriver/mac64/116.0.5845.187/chromedriver-mac-arm64/chromedriver"
 # def check_date():
 #     url = "https://portal.ustraveldocs.com/appointmentcancellation"
@@ -57,27 +63,6 @@ elem_xpaths = {"username": '//input[@id="loginPage:SiteTemplate:siteLogin:loginC
                "cancel_tab": "//*[text()='Cancel Appointment']"}
 user_data = "/Users/jarvixwang/Downloads/selenium/data"
 os.makedirs(user_data, exist_ok=True)
-class ReuseChrome(Remote):
-
-    def __init__(self, command_executor, session_id):
-        self.r_session_id = session_id
-        Remote.__init__(self, command_executor=command_executor, desired_capabilities={})
-
-    def start_session(self, capabilities, browser_profile=None):
-        """
-        重写start_session方法
-        """
-        if not isinstance(capabilities, dict):
-            raise InvalidArgumentException("Capabilities must be a dictionary")
-        if browser_profile:
-            if "moz:firefoxOptions" in capabilities:
-                capabilities["moz:firefoxOptions"]["profile"] = browser_profile.encoded
-            else:
-                capabilities.update({'firefox_profile': browser_profile.encoded})
-
-        self.capabilities = options.Options().to_capabilities()
-        self.session_id = self.r_session_id
-        self.w3c = False
 
 def bypass_test():
     # os.system(f"/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port={chrome_port}")
@@ -88,6 +73,9 @@ def bypass_test():
     # chrome_options.headless = True
     chrome_options.add_argument("--user-data-dir=/Users/jarvixwang/Library/Application Support/Google/Chrome/Default")
     chrome_options.add_argument("start-maximized")
+    chrome_options.add_argument('disable-gpu')
+    chrome_options.add_argument('no-sandbox')
+    chrome_options.add_argument('disable-dev-shm-usage')
     # chrome_options.add_argument("--headless")
     # chrome_options.add_experimental_option("debuggerAddress", f"127.0.0.1:{chrome_port}")
     # chrome_options.add_argument("–-incognito")
@@ -104,6 +92,7 @@ def bypass_test():
     driver = webdriver.Chrome(service=ChromeService(executable_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),#service=ChromeService(chrome_drive_path),
                               options=chrome_options)
     print(f"加载driver")
+    scraper = cloudscraper.create_scraper(browser=driver, headers=headers, proxies=proxies)
     # except:
     #     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
     #                               options=chrome_options)
